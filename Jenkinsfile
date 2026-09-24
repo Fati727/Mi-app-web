@@ -2,9 +2,23 @@ pipeline {
   agent any
 
   stages {
+
     stage('Build') {
       steps {
         sh 'docker build -t mi-app-web:${BUILD_NUMBER} .'
+      }
+    }
+
+    stage('Security Scan') {
+      steps {
+        sh '''
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy image \
+            --exit-code 1 \
+            --severity CRITICAL \
+            mi-app-web:${BUILD_NUMBER}
+        '''
       }
     }
 
